@@ -24,16 +24,17 @@ bl_info = {
     "author": "Joshua Bogart",
     "version": (1, 0),
     "blender": (2, 83, 0),
-    "location": "View3D > Sidebar > Unreal Tools Tab",
+    "location": "View3D > Sidebar > Not Unreal Tools Tab",
     "description": "A tool for storing per frame vertex data for use in a vertex shader.",
     "warning": "",
     "doc_url": "",
-    "category": "Unreal Tools",
+    "category": "Not Unreal Tools",
 }
 
 
 import bpy
 import bmesh
+import os
 
 
 def get_per_frame_mesh_data(context, data, objects):
@@ -64,9 +65,7 @@ def create_export_mesh_object(context, data, me):
     uv_layer = me.uv_layers[1]
     uv_layer.name = "vertex_anim"
     for loop in me.loops:
-        uv_layer.data[loop.index].uv = (
-            (loop.vertex_index + 0.5)/len(me.vertices), 128/255
-        )
+        uv_layer.data[loop.index].uv = ((loop.vertex_index + 0.5)/len(me.vertices), 0.0)
     ob = data.objects.new("export_mesh", me)
     context.scene.collection.objects.link(ob)
     return ob
@@ -77,13 +76,16 @@ def get_vertex_data(data, meshes):
     original = meshes[0].vertices
     offsets = []
     normals = []
-    for me in reversed(meshes):
+    for me in meshes: #for me in reversed(meshes):
         for v in me.vertices:
             offset = v.co - original[v.index].co
             x, y, z = offset
             offsets.extend((x, -y, z, 1))
             x, y, z = v.normal
             normals.extend(((x + 1) * 0.5, (-y + 1) * 0.5, (z + 1) * 0.5, 1))
+        #if not me.users:
+            #data.meshes.remove(me)
+    for me in meshes:    
         if not me.users:
             data.meshes.remove(me)
     return offsets, normals
@@ -97,6 +99,26 @@ def frame_range(scene):
 def bake_vertex_data(context, data, offsets, normals, size):
     """Stores vertex offsets and normals in seperate image textures"""
     width, height = size
+    
+    blend_path = bpy.data.filepath
+    blend_path = os.path.dirname(bpy.path.abspath(blend_path))
+    subfolder_path = os.path.join(blend_path, "vaexport")
+    if not os.path.exists(subfolder_path):
+        os.makedirs(subfolder_path)
+    openexr_filepath = os.path.join(subfolder_path, "offsets.exr")
+    png_filepath = os.path.join(subfolder_path, "normals.png")
+    
+    openexr_export_scene = bpy.data.scenes.new('openexr export scene')
+    openexr_export_scene.sequencer_colorspace_settings.name = 'Non-Color'
+    openexr_export_scene.render.image_settings.color_depth = '16'
+    openexr_export_scene.render.image_settings.color_mode = 'RGBA'
+    openexr_export_scene.render.image_settings.file_format = 'OPEN_EXR'
+    openexr_export_scene.render.image_settings.exr_codec = 'NONE'
+    	
+    if 'offsets' in bpy.data.images:
+        offset_tex = bpy.data.images['offsets']
+        bpy.data.images.remove(offset_tex)
+    
     offset_texture = data.images.new(
         name="offsets",
         width=width,
@@ -104,14 +126,34 @@ def bake_vertex_data(context, data, offsets, normals, size):
         alpha=True,
         float_buffer=True
     )
+    
+    offset_texture.file_format = 'OPEN_EXR'
+    offset_texture.colorspace_settings.name = 'Non-Color'
+    offset_texture.pixels = offsets
+    offset_texture.save_render(openexr_filepath, scene=openexr_export_scene)
+    bpy.data.scenes.remove(openexr_export_scene)
+    
+    png_export_scene = bpy.data.scenes.new('png export scene')
+    png_export_scene.render.image_settings.color_depth = '8'
+    png_export_scene.render.image_settings.color_mode = 'RGBA'
+    png_export_scene.render.image_settings.file_format = 'PNG'
+    png_export_scene.render.image_settings.compression = 15
+    
+    if 'normals' in bpy.data.images:
+        normals_tex = bpy.data.images['normals']
+        bpy.data.images.remove(normals_tex)
+    
     normal_texture = data.images.new(
         name="normals",
         width=width,
         height=height,
         alpha=True
     )
-    offset_texture.pixels = offsets
+    
+    normal_texture.file_format = 'PNG'
     normal_texture.pixels = normals
+    normal_texture.save_render(png_filepath, scene=png_export_scene)
+    bpy.data.scenes.remove(png_export_scene)
 
 
 class OBJECT_OT_ProcessAnimMeshes(bpy.types.Operator):
@@ -149,12 +191,12 @@ class OBJECT_OT_ProcessAnimMeshes(bpy.types.Operator):
                         f"Objects with {mod.type.title()} modifiers are not allowed!"
                     )
                     return {'CANCELLED'}
-        if units.system != 'METRIC' or round(units.scale_length, 2) != 0.01:
-            self.report(
-                {'ERROR'},
-                "Scene Unit must be Metric with a Unit Scale of 0.01!"
-            )
-            return {'CANCELLED'}        
+        #if units.system != 'METRIC' or round(units.scale_length, 2) != 0.01:
+        #    self.report(
+        #        {'ERROR'},
+        #        "Scene Unit must be Metric with a Unit Scale of 0.01!"
+        #    )
+        #    return {'CANCELLED'}        
         if vertex_count > 8192:
             self.report(
                 {'ERROR'},
@@ -182,7 +224,7 @@ class VIEW3D_PT_VertexAnimation(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_vertex_animation"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "Unreal Tools"
+    bl_category = "Not Unreal Tools"
 
     def draw(self, context):
         layout = self.layout
