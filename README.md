@@ -1,6 +1,18 @@
-# Unreal Tools
+# Not Unreal Tools
 
-##### Blender 2.83
+Modified by **yanorax**
+
+Vertex Animation add-on tested with **Blender 2.83.16 LTS** and **2.93.1 LTS**
+
+export_mesh.glb tested with **Godot Engine 3.3**
+
+## Changes From Original
+
+### Vertex Animation
+* Removed UE unit scale and metric system check
+* Export mesh UV coords are placed at V = 0.0 instead of V = 0.5
+* Frame mesh data is processed in default list order
+* New **offsets.exr** and **normals.png** image files are saved into a **vaexport** subfolder in the .blend file path. 
 
 ## Description
 A series of tools used to store vertex data in various ways. The data can then used in a game engine to animate meshes via a vertex shader.
