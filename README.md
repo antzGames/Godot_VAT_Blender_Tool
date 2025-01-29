@@ -1,6 +1,6 @@
 # Godot VAT Blender Tool
 
-Modified by **Abtz**
+Modified by **Antz**
 
 Vertex Animation add-on tested with **Blender 4.2.3 LTS**
 
