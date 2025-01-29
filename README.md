@@ -1,10 +1,10 @@
-# Not Unreal Tools
+# Godot VAT Blender Tool
 
-Modified by **yanorax**
+Modified by **Abtz**
 
-Vertex Animation add-on tested with **Blender 2.83.16 LTS** and **2.93.1 LTS**
+Vertex Animation add-on tested with **Blender 4.2.3 LTS**
 
-export_mesh.glb tested with **Godot Engine 3.3**
+export_mesh.glb tested with **Godot Engine 4.3**
 
 ## Changes From Original
 
