@@ -18,17 +18,21 @@
 
 # <pep8 compliant>
 
+# ORIGINAL CREDITS
+#    "name": "Vertex Animation",
+#    "author": "Joshua Bogart",
+
 
 bl_info = {
     "name": "Vertex Animation",
-    "author": "Joshua Bogart",
+    "author": "Antz",
     "version": (1, 0),
-    "blender": (2, 83, 0),
-    "location": "View3D > Sidebar > Not Unreal Tools Tab",
+    "blender": (4, 0, 1),
+    "location": "View3D > Sidebar > Godot Blender Tools Tab",
     "description": "A tool for storing per frame vertex data for use in a vertex shader.",
     "warning": "",
     "doc_url": "",
-    "category": "Not Unreal Tools",
+    "category": "Godot Blender Tools",
 }
 
 
@@ -51,9 +55,11 @@ def get_per_frame_mesh_data(context, data, objects):
             bm.from_mesh(me)
             data.meshes.remove(me)
         me = data.meshes.new("mesh")
+        bm.normal_update()
         bm.to_mesh(me)
         bm.free()
-        me.calc_normals()
+        #me.calc_normals()
+        me.update()
         meshes.append(me)
     return meshes
 
@@ -96,7 +102,8 @@ def frame_range(scene):
     return range(scene.frame_start, scene.frame_end, scene.frame_step)
 
 
-def bake_vertex_data(context, data, offsets, normals, size):
+#def bake_vertex_data(context, data, offsets, normals, size):
+def bake_vertex_data(data, offsets, normals, size):
     """Stores vertex offsets and normals in seperate image textures"""
     width, height = size
     
@@ -214,7 +221,8 @@ class OBJECT_OT_ProcessAnimMeshes(bpy.types.Operator):
         create_export_mesh_object(context, data, export_mesh_data)
         offsets, normals = get_vertex_data(data, meshes)
         texture_size = vertex_count, frame_count
-        bake_vertex_data(context, data, offsets, normals, texture_size)
+        #bake_vertex_data(context, data, offsets, normals, texture_size)
+        bake_vertex_data(data, offsets, normals, texture_size)
         return {'FINISHED'}
 
 
@@ -224,7 +232,7 @@ class VIEW3D_PT_VertexAnimation(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_vertex_animation"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "Not Unreal Tools"
+    bl_category = "Godot Blender Tools"
 
     def draw(self, context):
         layout = self.layout

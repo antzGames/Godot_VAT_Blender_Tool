@@ -16,19 +16,23 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# ORIGINAL CREDITS:
+#    "name": "Mesh Morpher",
+#    "author": "Joshua Bogart",
+
 # <pep8 compliant>
 
 
 bl_info = {
     "name": "Mesh Morpher",
-    "author": "Joshua Bogart",
+    "author": "Antz",
     "version": (1, 0),
-    "blender": (2, 83, 0),
-    "location": "View3D > Sidebar > Unreal Tools Tab",
+    "blender": (4, 0, 1),
+    "location": "View3D > Sidebar > Godot Blender Tools Tab",
     "description": "A tool for storing shape key data for use in a vertex shader.",
     "warning": "",
     "doc_url": "",
-    "category": "Unreal Tools",
+    "category": "Godot Blender Tools",
 }
 
 
@@ -142,7 +146,7 @@ class VIEW3D_PT_MeshMorpher(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_mesh_morpher"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "Unreal Tools"
+    bl_category = "Godot Blender Tools"
 
     def draw(self, context):
         layout = self.layout
